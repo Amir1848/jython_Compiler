@@ -1,4 +1,4 @@
-package gen;// Generated from D:/compiler/jython_Compiler/grammer\Main.g4 by ANTLR 4.10.1
+package gen;// Generated from H:/University/Compiler/jython_Compiler/grammar\Main.g4 by ANTLR 4.10.1
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
