@@ -38,6 +38,13 @@ T__36=37
 T__37=38
 T__38=39
 T__39=40
+CLASSNAME=41
+BOOL=42
+INTEGER=43
+STRING=44
+FLOAT=45
+TYPE=46
+ID=47
 'import'=1
 'class'=2
 '('=3
@@ -78,3 +85,7 @@ T__39=40
 '-='=38
 '*='=39
 '/='=40
+'bool'=42
+'int'=43
+'string'=44
+'float'=45

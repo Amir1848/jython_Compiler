@@ -1,5 +1,5 @@
-import nothing1
-import nothing2
+import Nothing1
+import Nothing2
 
 class Human() {
     Nose nose;

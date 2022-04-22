@@ -1,12 +1,11 @@
 grammar Main;
 
-
 program : importclass* (classDef)? ;
 
 importclass : 'import' CLASSNAME ;
 classDef : 'class' CLASSNAME ('(' CLASSNAME ')')? '{' class_body* '}';
 class_body : varDec | methodDec | constructor | arrayDec ;
-varDec : TYPE ID ;
+varDec : TYPE ID;
 arrayDec : TYPE '['INTEGER']' ID ;
 methodDec : 'def' (TYPE|'void') ID '(' parameter* ')''{' ( statement)* '}';
 constructor : 'def' TYPE '(' parameter* ')''{' ( statement)* '}' ;
@@ -35,6 +34,8 @@ explist : exp (',' exp)*;
 arithmetic_operator: '+' | '-' | '*' | '/' | '%' ;
 relational_operators : '<' | '>' | '<=' | '>=' | '==' | '!=' ;
 assignment_operators : '=' | '+=' | '-=' | '*=' | '/=' ;
+
+WS : [ \r\t\u000C\n]+ -> skip ;
 
 CLASSNAME: [A-Z][a-zA-Z0-9]*;
 BOOL: 'bool';
