@@ -35,3 +35,11 @@ explist : exp (',' exp)*;
 arithmetic_operator: '+' | '-' | '*' | '/' | '%' ;
 relational_operators : '<' | '>' | '<=' | '>=' | '==' | '!=' ;
 assignment_operators : '=' | '+=' | '-=' | '*=' | '/=' ;
+
+CLASSNAME: [A-Z][a-zA-Z0-9]*;
+BOOL: 'bool';
+INTEGER: 'int';
+STRING: 'string';
+FLOAT: 'float';
+TYPE: INTEGER | BOOL | STRING | FLOAT | CLASSNAME;
+ID: [a-z][a-zA-Z0-9_]*;
