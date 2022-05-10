@@ -14,6 +14,7 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        System.out.println("Exit");
         CharStream stream = CharStreams.fromFileName("./sample/test.cl");
         MainLexer lexer = new MainLexer(stream);
         TokenStream tokens = new CommonTokenStream(lexer);
