@@ -7,19 +7,36 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class ProgramPrinter implements MainListener {
+    private boolean isInClassFlag = false;
+    private boolean isInMethodFlag = false;
+    private boolean isInConstructorFlag = false;
+
+
+    private boolean isInClassPure(){
+        return isInClassFlag && !isInMethodFlag && !isInConstructorFlag;
+    }
+
+    private boolean isInMethodPure(){
+        return isInClassFlag && isInMethodFlag && !isInConstructorFlag;
+    }
+
+    private boolean isInConstructorPure(){
+        return isInClassFlag && !isInMethodFlag && isInConstructorFlag;
+    }
+
     @Override
     public void enterProgram(MainParser.ProgramContext ctx) {
-‍   ‍‍
+        System.out.println("program start () {");
     }
 
     @Override
     public void exitProgram(MainParser.ProgramContext ctx) {
-
+        System.out.println("}");
     }
 
     @Override
     public void enterImportclass(MainParser.ImportclassContext ctx) {
-
+        System.out.println("    import class:" + ctx.CLASSNAME());
     }
 
     @Override
@@ -29,12 +46,32 @@ public class ProgramPrinter implements MainListener {
 
     @Override
     public void enterClassDef(MainParser.ClassDefContext ctx) {
-
+        this.isInClassFlag = true;
+        var stringBuilder = new StringBuilder(ProgramPrinterHelper.getTab() + "class: " + ctx.CLASSNAME(0) + "/ ");
+        var hasAnyParentClass = ctx.CLASSNAME().size() > 0;
+        if(hasAnyParentClass){
+            stringBuilder.append("class parents: (");
+            int i = 1;
+            while(true){
+                var className = ctx.CLASSNAME(i);
+                if(className != null){
+                    stringBuilder.append(className.toString()+",");
+                }else{
+                    var newLengthWithoutComma = stringBuilder.length() - 1;
+                    stringBuilder.setLength(newLengthWithoutComma);
+                    break;
+                }
+                i++;
+            }
+            stringBuilder.append("){");
+        }
+        System.out.println(stringBuilder.toString());
     }
 
     @Override
     public void exitClassDef(MainParser.ClassDefContext ctx) {
-
+        this.isInClassFlag = false;
+        System.out.println(ProgramPrinterHelper.getTab() + "}");
     }
 
     @Override
@@ -49,7 +86,12 @@ public class ProgramPrinter implements MainListener {
 
     @Override
     public void enterVarDec(MainParser.VarDecContext ctx) {
-
+        var tabString = GetTabForExpression(ExpressionType.Field);
+        var stringBuilderResult = new StringBuilder( tabString +"field: "+ ctx.ID() + "/ type= ");
+        var hasType = ctx.TYPE() != null;
+        var typeOrClassName = hasType ? ctx.TYPE() : ctx.CLASSNAME();
+        stringBuilderResult.append(typeOrClassName);
+        System.out.println(stringBuilderResult);
     }
 
     @Override
@@ -59,7 +101,12 @@ public class ProgramPrinter implements MainListener {
 
     @Override
     public void enterArrayDec(MainParser.ArrayDecContext ctx) {
-
+        var tabString = GetTabForExpression(ExpressionType.Field);
+        var result = new StringBuilder(tabString);
+        var hasType = ctx.TYPE() != null;
+        var variableName =  hasType ? ctx.TYPE() : ctx.CLASSNAME();
+        result.append("field: " + variableName + "/ type= " +   variableName );
+        System.out.println(result);
     }
 
     @Override
@@ -69,22 +116,26 @@ public class ProgramPrinter implements MainListener {
 
     @Override
     public void enterMethodDec(MainParser.MethodDecContext ctx) {
-
+        this.isInMethodFlag = true;
     }
 
     @Override
     public void exitMethodDec(MainParser.MethodDecContext ctx) {
-
+        this.isInMethodFlag = false;
     }
 
     @Override
     public void enterConstructor(MainParser.ConstructorContext ctx) {
-
+        this.isInConstructorFlag = true;
+        var tabString = GetTabForExpression(ExpressionType.Constructor);
+        var result = new StringBuilder(tabString + "class constructor: " + ctx.CLASSNAME() + "{\n" );
+        result.append(ProgramPrinterHelper.getTab(3) + "parameter list: "+ ctx.parameter());
+        System.out.println(result);
     }
 
     @Override
     public void exitConstructor(MainParser.ConstructorContext ctx) {
-
+        this.isInConstructorFlag = false;
     }
 
     @Override
@@ -296,4 +347,56 @@ public class ProgramPrinter implements MainListener {
     public void exitEveryRule(ParserRuleContext parserRuleContext) {
 
     }
+
+    private String GetTabForExpression(ExpressionType exType){
+        switch (exType) {
+            case Field:
+                return GetTabForFieldExpression();
+            case Class:
+                return ProgramPrinterHelper.getTab();
+            case Method:
+            case Constructor:
+                return ProgramPrinterHelper.getTab(2);
+            default:
+                return "";
+        }
+    }
+
+    private String GetTabForFieldExpression(){
+        int tabSize = 0;
+        if(this.isInClassPure()){
+            tabSize = 2;
+        }else{
+            tabSize = 3;
+        }
+
+        return ProgramPrinterHelper.getTab(tabSize);
+    }
+}
+
+
+
+class ProgramPrinterHelper{
+    private static String tabString = "    ";
+
+    public static String getTab(int tabNumber){
+        var tabResult = new StringBuilder();
+        for (int i = 0; i < tabNumber; i++) {
+            tabResult.append(getTab());
+        }
+
+        return  tabResult.toString();
+    }
+
+    public static String getTab(){
+        return tabString;
+    }
+}
+
+
+enum ExpressionType {
+    Field,
+    Class,
+    Method,
+    Constructor
 }
