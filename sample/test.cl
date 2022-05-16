@@ -7,7 +7,7 @@ class Human(Nothing, Nothing2){
     int calories
     bool isHungry
 
-    def Human(Nose n){
+    def Human(Nose n, Ali c){
         self.nose = n
     }
     def Voice speak(){
@@ -23,7 +23,7 @@ class Human(Nothing, Nothing2){
             self.isHungry = self.checkIsHungry()
         }
     }
-    def bool checkIsHungry(){
+    def bool checkIsHungry(float hassan, Ali ali){
         return true
     }
 }

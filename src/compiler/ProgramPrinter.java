@@ -6,11 +6,14 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ProgramPrinter implements MainListener {
     private boolean isInClassFlag = false;
     private boolean isInMethodFlag = false;
     private boolean isInConstructorFlag = false;
-
+    private boolean isInParameterDefineFlag = false;
 
     private boolean isInClassPure(){
         return isInClassFlag && !isInMethodFlag && !isInConstructorFlag;
@@ -86,12 +89,14 @@ public class ProgramPrinter implements MainListener {
 
     @Override
     public void enterVarDec(MainParser.VarDecContext ctx) {
-        var tabString = GetTabForExpression(ExpressionType.Field);
-        var stringBuilderResult = new StringBuilder( tabString +"field: "+ ctx.ID() + "/ type= ");
-        var hasType = ctx.TYPE() != null;
-        var typeOrClassName = hasType ? ctx.TYPE() : ctx.CLASSNAME();
-        stringBuilderResult.append(typeOrClassName);
-        System.out.println(stringBuilderResult);
+        if(this.isInParameterDefineFlag){
+            var result = GetVariableDefineStringAsParameter(ctx);
+            //System.out.print(result);
+            return;
+        }else{
+            var result = GetVariableDefineStringAsVariable(ctx);
+            System.out.println(result);
+        }
     }
 
     @Override
@@ -117,11 +122,19 @@ public class ProgramPrinter implements MainListener {
     @Override
     public void enterMethodDec(MainParser.MethodDecContext ctx) {
         this.isInMethodFlag = true;
+        var tabString = GetTabForExpression(ExpressionType.Method);
+        var result = new StringBuilder(tabString + "class method: " + ctx.ID() + "{\n" );
+        result.append(ProgramPrinterHelper.getTab(3) + "parameter list: ");
+        result.append(this.getAllParametersDefineString(ctx.parameter()));
+        System.out.println(result);
     }
+
 
     @Override
     public void exitMethodDec(MainParser.MethodDecContext ctx) {
         this.isInMethodFlag = false;
+        var tabString = GetTabForExpression(ExpressionType.Method);
+        System.out.println(tabString + "}");
     }
 
     @Override
@@ -129,23 +142,26 @@ public class ProgramPrinter implements MainListener {
         this.isInConstructorFlag = true;
         var tabString = GetTabForExpression(ExpressionType.Constructor);
         var result = new StringBuilder(tabString + "class constructor: " + ctx.CLASSNAME() + "{\n" );
-        result.append(ProgramPrinterHelper.getTab(3) + "parameter list: "+ ctx.parameter());
+        result.append(ProgramPrinterHelper.getTab(3) + "parameter list: ");
+        result.append(this.getAllParametersDefineString(ctx.parameter()));
         System.out.println(result);
     }
 
     @Override
     public void exitConstructor(MainParser.ConstructorContext ctx) {
         this.isInConstructorFlag = false;
+        var tabString = GetTabForExpression(ExpressionType.Constructor);
+        System.out.println(tabString + "}");
     }
 
     @Override
     public void enterParameter(MainParser.ParameterContext ctx) {
-
+        this.isInParameterDefineFlag = true;
     }
 
     @Override
     public void exitParameter(MainParser.ParameterContext ctx) {
-
+        this.isInParameterDefineFlag = false;
     }
 
     @Override
@@ -372,6 +388,50 @@ public class ProgramPrinter implements MainListener {
 
         return ProgramPrinterHelper.getTab(tabSize);
     }
+
+    private String GetVariableDefineStringAsVariable(MainParser.VarDecContext ctx){
+        var tabString = GetTabForExpression(ExpressionType.Field);
+        var stringBuilderResult = new StringBuilder( tabString +"field: "+ ctx.ID() + "/ type= ");
+        var hasType = ctx.TYPE() != null;
+        var typeOrClassName = hasType ? ctx.TYPE() : ctx.CLASSNAME();
+        stringBuilderResult.append(typeOrClassName);
+        return  stringBuilderResult.toString();
+    }
+
+    private String GetVariableDefineStringAsParameter(MainParser.VarDecContext ctx){
+        var hasType = ctx.TYPE() != null;
+        var typeOrClassName = hasType ? ctx.TYPE() : ctx.CLASSNAME();
+        return  ctx.ID() + " " + typeOrClassName  + ",";
+    }
+
+    private String getAllParametersDefineString(List<MainParser.ParameterContext> parameters){
+        var result = new StringBuilder("[");
+        var allVarialbles = getAllVariablesOfParameters(parameters);
+        for (int i = 0; i < allVarialbles.size(); ++i) {
+            var fieldString = getVariableAsParameter(allVarialbles.get(i));
+            result.append(fieldString);
+            if(i != (allVarialbles.size() - 1)){
+                result.append(", ");
+            }
+        }
+        result.append("]");
+        return result.toString();
+    }
+
+    private List<MainParser.VarDecContext> getAllVariablesOfParameters(List<MainParser.ParameterContext> parameters){
+        var variableContexts = new ArrayList<MainParser.VarDecContext>();
+        for (int i = 0; i < parameters.size(); ++i) {
+            variableContexts.addAll(parameters.get(i).varDec());
+        }
+        return variableContexts;
+    }
+
+    private String getVariableAsParameter(MainParser.VarDecContext ctx){
+        var hasType = ctx.TYPE() != null;
+        var typeOrClassName = hasType ? ctx.TYPE() : ctx.CLASSNAME();
+        return  ctx.ID() + " " + typeOrClassName;
+    }
+
 }
 
 
@@ -391,7 +451,9 @@ class ProgramPrinterHelper{
     public static String getTab(){
         return tabString;
     }
+
 }
+
 
 
 enum ExpressionType {
